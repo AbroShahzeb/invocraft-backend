@@ -57,7 +57,7 @@ export default (err, req, res, next) => {
     let error = { ...err };
     if (error.name === "CastError") error = handleCastErrorDB(error);
     if (error.code === 11000) error = handleDuplicateValueDB(error);
-    if (error.name === "ValidationError")
+    if (error._message === "User validation failed")
       error = handleValidationErrorDB(error);
     if (error.name === "JsonWebTokenError") error = handleJWTInvalidErr();
     if (error.name === "TokenExpiredError") error = handleJWTExpiredError();
