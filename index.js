@@ -24,9 +24,8 @@ import rateLimit from "express-rate-limit";
 
 configDotenv();
 
-app.get("/", protect, (req, res, next) => {
-  console.log("User", req.user);
-  res.json({ message: "Hello world" });
+app.get("/", (req, res, next) => {
+  res.json({ message: "Hello from the server" });
 });
 
 connectDB();
