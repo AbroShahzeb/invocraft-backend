@@ -1,5 +1,10 @@
 import express from "express";
+import helmet from "helmet";
+import mongoSanitize from "express-mongo-sanitize";
+import xss from "xss-clean";
+import hpp from "hpp";
 const app = express();
+app.use(helmet());
 
 process.on("uncaughtException", (err) => {
   console.log("UNHANDLED EXCEPTION 🚚! Shutting down...");
@@ -15,6 +20,8 @@ import globalErrorHandler from "./controllers/errorController.js";
 import userRoutes from "./routes/userRoutes.js";
 import { protect } from "./controllers/authController.js";
 
+import rateLimit from "express-rate-limit";
+
 configDotenv();
 
 app.get("/", protect, (req, res, next) => {
@@ -28,7 +35,20 @@ const server = app.listen(process.env.PORT || 3000, () => {
   console.log(`Listening on PORT`, process.env.PORT || 3000);
 });
 
-app.use(express.json());
+const limiter = rateLimit({
+  max: 100,
+  windowMs: 60 * 60 * 1000,
+  message: "Too many requests from this IP, please try again in an hour",
+});
+
+app.use("/api", limiter);
+
+app.use(express.json({ limit: "10kb" }));
+
+app.use(mongoSanitize());
+app.use(xss());
+app.use(hpp());
+
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/v1/user", userRoutes);
