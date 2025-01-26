@@ -11,9 +11,14 @@ import { configDotenv } from "dotenv";
 import { connectDB } from "./utils/db.js";
 import AppError from "./utils/appError.js";
 import globalErrorHandler from "./controllers/errorController.js";
+
+import userRoutes from "./routes/userRoutes.js";
+import { protect } from "./controllers/authController.js";
+
 configDotenv();
 
-app.get("/", (req, res, next) => {
+app.get("/", protect, (req, res, next) => {
+  console.log("User", req.user);
   res.json({ message: "Hello world" });
 });
 
@@ -23,14 +28,15 @@ const server = app.listen(process.env.PORT || 3000, () => {
   console.log(`Listening on PORT`, process.env.PORT || 3000);
 });
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.use("/api/v1/user", userRoutes);
+
 app.all("*", (req, res, next) => {
   next(
     new AppError(`Cannot find ${req.originalUrl} on this server! testtt`, 404)
   );
-});
-
-app.get("/", (req, res, next) => {
-  res.json("Some middleware in the between");
 });
 
 app.use(globalErrorHandler);
